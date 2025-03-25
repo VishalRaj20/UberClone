@@ -1,30 +1,41 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import {UserDataContext} from '../context/UserContext'
 
 const UserSignup = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [firstname, setFirstname] = useState('')
   const [lastname, setLastname] = useState('')
-  const [userData, setUserData] = useState({})
 
-  const SubmitHandler = (e) => {
+  const navigate = useNavigate()
+  const { user, setUser } = React.useContext(UserDataContext)
+
+  const SubmitHandler = async(e) => {
     e.preventDefault();
-    setUserData({
-      fullName: {
+    const newUser = {
+      fullname: {
         firstname: firstname,
         lastname: lastname
       },
       email: email,
       password: password
-    })
-    console.log(userData);
+    }
+    const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/register`, newUser);
+
+    if(response.status === 201){
+      const data = response.data
+      setUser(data.user)
+      localStorage.setItem('token', data.token)
+      navigate('/home')
+    }
     setEmail('')
     setPassword('')
     setFirstname('')
     setLastname('')
   }
-
+  
   return (
     <div className='p-7 h-screen flex flex-col justify-between '>
       <div >
@@ -69,7 +80,7 @@ const UserSignup = () => {
               setPassword(e.target.value)
             }} />
           <button onClick={(e) => { SubmitHandler(e) }} className='bg-black text-white text-lg w-full py-2 rounded mb-2'>
-            Login
+            Create Account
           </button>
           <p className='flex justify-center text-lg'>Already have Account? <Link to={'/login'} className='text-blue-700 underline ml-2'>Login here</Link></p>
         </form>
